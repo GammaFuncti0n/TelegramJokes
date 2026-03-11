@@ -16,4 +16,4 @@ seaborn==0.13.2
 optuna==4.6.0
 jupyterlab==4.5.1
 scipy==1.17.0
-bpetokenizer==1.2.1
+tokenizers==0.22.2
