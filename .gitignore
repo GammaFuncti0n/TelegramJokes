@@ -3,3 +3,5 @@ TelegramJokes/
 artifacts/
 data/
 notebooks/
+__pycache__/
+tgtoken.py

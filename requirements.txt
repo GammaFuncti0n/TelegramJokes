@@ -1,0 +1,6 @@
+# Basic func
+numpy==2.4.1
+# PyTorch
+torch==2.9.1
+tokenizers==0.22.2
+python-telegram-bot==22.6
