@@ -3,6 +3,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 from tqdm import tqdm
+import logging
+
+logger = logging.getLogger(__name__)
 
 class LSTMModule():
     def __init__(self, config):
@@ -26,6 +29,7 @@ class LSTMModule():
 
         self.num_epochs = self.train_parameters['num_epochs']
         self.clip_grad = self.train_parameters['gradient_clip']
+        self.loss_logging_step = self.train_parameters['loss_logging_step']
 
     def __init_model(self):
         '''
@@ -44,7 +48,7 @@ class LSTMModule():
             train_loss = self.train_epoch(train_dataloader)
             if self.epoch%self.scheduler_step==0:
                 self._scheduler.step()
-            print(f"{self.epoch+1}/{self.num_epochs}: Train loss = {train_loss:.4f}, lr = {self._scheduler.get_last_lr()[0]:.6f}")
+            logger.info(f"{self.epoch+1}/{self.num_epochs}: Train loss = {train_loss:.4f}, lr = {self._scheduler.get_last_lr()[0]:.6f}")
 
             # Save best model
             if(train_loss < best_loss):
@@ -68,7 +72,7 @@ class LSTMModule():
         self._model.train()
 
         pbar = tqdm(total=len(train_dataloader), desc=f'Epoch {self.epoch+1}/{self.num_epochs}', postfix={'loss': '?'}) 
-        for batch in train_dataloader:
+        for i, batch in enumerate(train_dataloader):
             x = batch[0][:,:-1].to(self.device)
             y = batch[0][:,1:].to(self.device)
 
@@ -81,6 +85,9 @@ class LSTMModule():
             
             torch.nn.utils.clip_grad_norm_(self._model.parameters(), 1.0)
             self._optimizer.step()
+
+            if (i+1)%self.loss_logging_step==0:
+                logger.info(f"Loss batch {i+1}: {np.mean(train_loss_list[-self.loss_logging_step:])}")
 
             pbar.set_postfix({'loss': f'{loss.item():.4f}'})
             pbar.update(1)

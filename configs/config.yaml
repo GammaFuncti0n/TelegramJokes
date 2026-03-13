@@ -5,7 +5,7 @@ paths:
   
 env:
   seed: 42
-  device: cuda:4
+  device: cuda:2
 
 model:
   name: LSTM
@@ -28,4 +28,5 @@ train_params:
   weight_decay: 1e-4
   gamma: 0.9
   scheduler_step: 5
+  loss_logging_step: 50
   gradient_clip: 1.0
