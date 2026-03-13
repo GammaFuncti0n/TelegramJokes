@@ -8,11 +8,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 class LSTMModule():
-    def __init__(self, config):
+    def __init__(self, config, tokenizer):
         '''
         Init method
         '''
         self.config = config
+        self.tokenizer = tokenizer
+
         self.model_parameters = self.config['model']['model_params']
         self.train_parameters = self.config['train_params']
         self.device = self.config['env']['device']
@@ -48,6 +50,7 @@ class LSTMModule():
             train_loss = self.train_epoch(train_dataloader)
             if self.epoch%self.scheduler_step==0:
                 self._scheduler.step()
+                logger.info(self.generate("Заходит улитка в бар,"))
             logger.info(f"{self.epoch+1}/{self.num_epochs}: Train loss = {train_loss:.4f}, lr = {self._scheduler.get_last_lr()[0]:.6f}")
 
             # Save best model
@@ -94,6 +97,26 @@ class LSTMModule():
         pbar.close()
 
         return np.mean(train_loss_list)
+    
+    def generate(self, input_text):
+        input_tokens = self.tokenizer.encode(input_text)
+
+        input_tokens = torch.tensor(input_tokens[:-1], dtype=torch.long).unsqueeze(0).to(self.device)
+
+        temperature = 0.5
+        for i in range(100):
+            self._model.eval()
+            model_out = self._model(input_tokens).squeeze(0)
+            model_p = torch.softmax(model_out/temperature, 1)
+            sample_tokens = torch.multinomial(model_p[-1], 1)
+            #next_token = model(input_tokens).argmax(-1).squeeze(0)[-1]
+            input_tokens = torch.concat((input_tokens, sample_tokens.unsqueeze(0)), 1)
+            if input_tokens[0,-1]==3:
+                break
+
+        output_tokens = input_tokens.squeeze(0).cpu()
+        output_text = self.tokenizer.decode(list(output_tokens))
+        return output_text
 
 class LSTMModel(nn.Module):
     def __init__(self, vocab_size, embedding_size, hidden_size, num_layers, dropout, **kwargs):
@@ -122,3 +145,4 @@ class LSTMModel(nn.Module):
         out, (h, c) = self.encoder(emb)
         out = self.head(out)
         return out
+

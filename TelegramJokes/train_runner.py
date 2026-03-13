@@ -43,7 +43,7 @@ class TrainRunner():
             num_workers=self.num_workers
             )
 
-        model = LSTMModule(self.config)
+        model = LSTMModule(self.config, tokenizer)
         model.fit(train_dataloader)
 
         # log results
