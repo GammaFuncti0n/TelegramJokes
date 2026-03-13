@@ -1,8 +1,31 @@
 paths:
   data: data/jokes.txt
-  models: models/
+  models_checkpoints: ./artifacts/checpoints/models/
+  tokenizers_checkpoints: ./artifacts/checpoints/tokenizers/
   
 env:
   seed: 42
-  device: cpu
+  device: cuda:4
 
+model:
+  name: LSTM
+  model_params:
+    vocab_size: 5000
+    embedding_size: 256 
+    hidden_size: 256 
+    num_layers: 2
+    dropout: 0.3
+    model_max_length: 128
+
+  tokenizer_params:
+    special_tokens: ["[PAD]", "[UNK]", "[BOS]", "[EOS]"]
+
+train_params:
+  num_epochs: 2
+  batch_size: 128
+  num_workers: 1
+  lr: 1e-3
+  weight_decay: 1e-4
+  gamma: 0.9
+  scheduler_step: 5
+  gradient_clip: 1.0
