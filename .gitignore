@@ -5,3 +5,5 @@ data/
 notebooks/
 __pycache__/
 tgtoken.py
+test.py
+*.log

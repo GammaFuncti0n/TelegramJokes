@@ -17,14 +17,14 @@ class JokeGenerator:
         for i in range(maxlen):
             emb = self.model.embeddings(input)
             if h is None:
-                out, (h,c) = model.encoder(emb)
+                out, (h,c) = self.model.encoder(emb)
             else:
-                out, (h,c) = model.encoder(emb, (h, c))
-            logits = model.head(out)[:,-1] / temperature
+                out, (h,c) = self.model.encoder(emb, (h, c))
+            logits = self.model.head(out)[:,-1] / temperature
             probs = torch.softmax(logits, -1)
             input = torch.multinomial(probs[-1], 1).unsqueeze(0)
             generated.append(input.item())
             if generated[-1]==3:
                 break
-        output_text = tokenizer.decode(generated)
+        output_text = self.tokenizer.decode(generated)
         return output_text

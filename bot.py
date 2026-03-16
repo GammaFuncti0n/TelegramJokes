@@ -14,11 +14,26 @@ from telegram.request import HTTPXRequest
 
 import logging
 
+# Base logger
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
+# User logger
+user_logger = logging.getLogger("user_requests")
+user_logger.setLevel(logging.INFO)
+
+file_handler = logging.FileHandler("user_requests.log", encoding="utf-8")
+formatter = logging.Formatter(
+    "%(asctime)s | user_id=%(user_id)s | username=%(username)s | prompt=%(prompt)s | response=%(response)s"
+)
+
+file_handler.setFormatter(formatter)
+user_logger.addHandler(file_handler)
+user_logger.propagate = False
+
+# Functions for generate
 model = load_model("./artifacts/checkpoints/models/LSTM_v01.pt")
 tokenizer = load_tokenizer("./artifacts/checkpoints/tokenizers/tokenizer_LSTM_v01.json")
 generator = JokeGenerator(model, tokenizer)
@@ -41,7 +56,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.message.from_user
     user_text = update.message.text
+
     logging.info(f"Получено сообщение: {user_text}")
 
     if user_text == "Случайный анекдот":
@@ -50,6 +67,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         joke = generator.generate(prompt=user_text, temperature=0.4)
 
     logging.info(f"Отправка шутки: {joke}")
+
+    # Logging user information
+    user_logger.info(
+        "",
+        extra={
+            "user_id": user.id,
+            "username": user.username,
+            "prompt": user_text,
+            "response": joke
+        }
+    )
+
     await update.message.reply_text(joke)
 
 
