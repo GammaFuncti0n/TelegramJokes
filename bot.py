@@ -44,8 +44,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = (
         "Привет! Я бот, который генерирует анекдоты.\n\n"
-        "Напиши начало анекдота — и я его продолжу.\n"
-        "Или нажми кнопку «Случайный анекдот»."
+        "Напиши \generate и начало анекдота — и я его продолжу.\n"
     )
 
     await update.message.reply_text(text)
@@ -55,14 +54,14 @@ async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text[:1000]
     if not user_text:
         await update.message.reply_text("Пошел нахуй")
-    joke = generator.generate(prompt="", temperature=0.5).strip()
+    joke = generator.generate(prompt=user_text, temperature=0.5).strip()
 
     user_logger.info(
         "",
         extra={
             "user_id": user.id,
             "username": user.username,
-            "prompt": {user_text},
+            "prompt": user_text,
             "response": joke
         }
     )
@@ -71,8 +70,8 @@ async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.message.from_user[:1000]
-    user_text = update.message.text
+    user = update.message.from_user
+    user_text = update.message.text[:1000]
 
     if not text:
         return None
