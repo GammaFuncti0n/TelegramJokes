@@ -58,7 +58,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     user_text = update.message.text
-    if len(user_text>1000):
+    if len(user_text)>1000:
         user_text = user_text[:1000]
     else:
         pass
