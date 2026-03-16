@@ -6,6 +6,7 @@ from telegram.ext import (
     ContextTypes,
     filters
 )
+import random
 
 from model import load_model, load_tokenizer
 from generator import JokeGenerator
@@ -39,11 +40,6 @@ tokenizer = load_tokenizer("./artifacts/checkpoints/tokenizers/tokenizer_LSTM_v0
 generator = JokeGenerator(model, tokenizer)
 
 
-keyboard = ReplyKeyboardMarkup(
-    [["Случайный анекдот"]],
-    resize_keyboard=True
-)
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = (
@@ -52,25 +48,42 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Или нажми кнопку «Случайный анекдот»."
     )
 
-    await update.message.reply_text(text, reply_markup=keyboard)
+    await update.message.reply_text(text)
+
+async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.message.from_user
+    user_text = update.message.text[:1000]
+    if not user_text:
+        await update.message.reply_text("Пошел нахуй")
+    joke = generator.generate(prompt="", temperature=0.5).strip()
+
+    user_logger.info(
+        "",
+        extra={
+            "user_id": user.id,
+            "username": user.username,
+            "prompt": {user_text},
+            "response": joke
+        }
+    )
+
+    await update.message.reply_text(joke)
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.message.from_user
+    user = update.message.from_user[:1000]
     user_text = update.message.text
-    if len(user_text)>1000:
-        user_text = user_text[:1000]
-    else:
-        pass
-    logging.info(f"Получено сообщение: {user_text}")
 
-    if user_text == "Случайный анекдот":
-        joke = generator.generate(prompt="", temperature=0.5)
-    else:
-        joke = generator.generate(prompt=user_text, temperature=0.4)
+    if not text:
+        return None
+    logging.info(f"Message received: {user_text}")
 
-    joke = joke.strip()
-    logging.info(f"Отправка шутки: {joke}")
+    if random.random() < 0.01:
+        joke = generator.generate(prompt=user_text, temperature=0.4).strip()
+    else:
+        return None
+
+    logging.info(f"Generated joke: {joke}")
 
     # Logging user information
     user_logger.info(
@@ -97,7 +110,11 @@ def main():
     )
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(CommandHandler("generate", generate))
+
+    app.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
+    )
 
     app.run_polling()
 
