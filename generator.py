@@ -9,7 +9,7 @@ class JokeGenerator:
     @torch.no_grad()
     def generate(self, prompt="", maxlen=128, temperature=0.5):
 
-        tokens = self.tokenizer.encode(prompt)
+        tokens = self.tokenizer.encode(prompt)[:maxlen]
         generated = tokens[:-1]
         input = torch.tensor(generated, dtype=torch.long).unsqueeze(0)
 

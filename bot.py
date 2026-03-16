@@ -58,7 +58,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     user_text = update.message.text
-
+    if len(user_text>1000):
+        user_text = user_text[:1000]
+    else:
+        pass
     logging.info(f"Получено сообщение: {user_text}")
 
     if user_text == "Случайный анекдот":
@@ -66,6 +69,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         joke = generator.generate(prompt=user_text, temperature=0.4)
 
+    joke = joke.strip()
     logging.info(f"Отправка шутки: {joke}")
 
     # Logging user information
