@@ -1,12 +1,14 @@
-from telegram import Update, ReplyKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
     MessageHandler,
     ContextTypes,
-    filters
+    filters,
+    CallbackQueryHandler
 )
 import random
+import uuid
 
 from model import load_model, load_tokenizer
 from generator import JokeGenerator
@@ -27,7 +29,7 @@ user_logger.setLevel(logging.INFO)
 
 file_handler = logging.FileHandler("user_requests.log", encoding="utf-8")
 formatter = logging.Formatter(
-    "%(asctime)s | user_id=%(user_id)s | username=%(username)s | prompt=%(prompt)s | response=%(response)s"
+    "%(asctime)s | user_id=%(user_id)s | username=%(username)s | prompt=%(prompt)s | response=%(response)s | joke_id=%(joke_id)s"
 )
 
 file_handler.setFormatter(formatter)
@@ -39,6 +41,14 @@ model = load_model("./artifacts/checkpoints/models/LSTM_v01.pt")
 tokenizer = load_tokenizer("./artifacts/checkpoints/tokenizers/tokenizer_LSTM_v01.json")
 generator = JokeGenerator(model, tokenizer)
 
+def create_feedback_buttons(joke_id: str):
+    keyboard = [
+        [
+            InlineKeyboardButton("👍 Нравится", callback_data=f"like|{joke_id}"),
+            InlineKeyboardButton("👎 Не нравится", callback_data=f"dislike|{joke_id}"),
+        ]
+    ]
+    return InlineKeyboardMarkup(keyboard)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -52,12 +62,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     user_text = update.message.text[:1000]
-    if not user_text:
-        await update.message.reply_text("Пошел нахуй")
+
     if user_text.strip() == "/generate":
         joke = generator.generate(prompt="", temperature=0.5).strip()
     else:
         joke = generator.generate(prompt=user_text, temperature=0.5).strip()
+
+    joke_id = str(uuid.uuid4())  # уникальный id шутки
+    markup = create_feedback_buttons(joke_id)
+    await update.message.reply_text(joke, reply_markup=markup)
 
     user_logger.info(
         "",
@@ -65,11 +78,10 @@ async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "user_id": user.id,
             "username": user.username,
             "prompt": user_text,
-            "response": joke
+            "response": joke,
+            "joke_id": joke_id
         }
     )
-
-    await update.message.reply_text(joke)
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
@@ -82,21 +94,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     p = random.random()
     if p < 0.05:
         joke = "Напомнило анекдот: \n\n" + generator.generate(prompt="", temperature=0.4).strip()
-        #joke = "Напомнило анекдот: \n\n" + joke
     else:
-        user_logger.info(
-            "",
-            extra={
-                "user_id": user.id,
-                "username": user.username,
-                "prompt": user_text,
-                "response": p
-            }
-        )
+        # user_logger.info(
+        #     "",
+        #     extra={
+        #         "user_id": user.id,
+        #         "username": user.username,
+        #         "prompt": user_text,
+        #         "response": p,
+        #         "joke_id": None
+        #     }
+        # )
         return None
 
     logging.info(f"Generated joke: {joke}")
-
+    joke_id = str(uuid.uuid4())  # уникальный id шутки
+    markup = create_feedback_buttons(joke_id)
     # Logging user information
     user_logger.info(
         "",
@@ -104,11 +117,36 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "user_id": user.id,
             "username": user.username,
             "prompt": user_text,
-            "response": joke
+            "response": joke,
+            "joke_id": joke_id
+        }
+    )
+    await update.message.reply_text(joke, reply_markup=markup)
+
+async def feedback_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()  # чтобы убрать "часики" на кнопке
+
+    data = query.data.split("|")
+    action = data[0]  # 'like' или 'dislike'
+    joke_id = data[1]
+
+    # Логируем реакцию пользователя
+    user = query.from_user
+    user_logger.info(
+        "",
+        extra={
+            "user_id": user.id,
+            "username": user.username,
+            "prompt": f"Feedback for joke_id {joke_id}",
+            "response": action,
+            "joke_id": joke_id
         }
     )
 
-    await update.message.reply_text(joke)
+    # Можно обновить сообщение, чтобы кнопки больше не нажимались
+    await query.edit_message_reply_markup(reply_markup=None)
+    #await query.message.reply_text(f"Вы оценили шутку как: {'👍' if action=='like' else '👎'}")
 
 async def debug(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_logger.info(
@@ -131,6 +169,7 @@ def main():
         .build()
     )
 
+    app.add_handler(CallbackQueryHandler(feedback_callback))
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("generate", generate))
 
