@@ -44,7 +44,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = (
         "Привет! Я бот, который генерирует анекдоты.\n\n"
-        "Напиши \generate и начало анекдота — и я его продолжу.\n"
+        "Напиши \\generate и начало анекдота — и я его продолжу.\n"
     )
 
     await update.message.reply_text(text)
@@ -54,7 +54,10 @@ async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text[:1000]
     if not user_text:
         await update.message.reply_text("Пошел нахуй")
-    joke = generator.generate(prompt=user_text, temperature=0.5).strip()
+    if user_text.strip() == "/generate":
+        joke = generator.generate(prompt="", temperature=0.5).strip()
+    else:
+        joke = generator.generate(prompt=user_text, temperature=0.5).strip()
 
     user_logger.info(
         "",
@@ -68,18 +71,28 @@ async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(joke)
 
-
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
-    user_text = update.message.text[:1000]
 
-    if not text:
-        return None
-    logging.info(f"Message received: {user_text}")
-
-    if random.random() < 0.01:
-        joke = generator.generate(prompt=user_text, temperature=0.4).strip()
+    if update.message.text:
+        user_text = update.message.text[:1000]
     else:
+        user_text = ""
+    
+    p = random.random()
+    if p < 0.05:
+        joke = "Напомнило анекдот: \n\n" + generator.generate(prompt="", temperature=0.4).strip()
+        #joke = "Напомнило анекдот: \n\n" + joke
+    else:
+        user_logger.info(
+            "",
+            extra={
+                "user_id": user.id,
+                "username": user.username,
+                "prompt": user_text,
+                "response": p
+            }
+        )
         return None
 
     logging.info(f"Generated joke: {joke}")
@@ -97,6 +110,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(joke)
 
+async def debug(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_logger.info(
+        "",
+        extra={
+            "user_id": update.effective_user.id,
+            "username": update.effective_user.username,
+            "prompt": str(update),
+            "response": ""
+        }
+    )
 
 def main():
     request = HTTPXRequest()
@@ -112,8 +135,9 @@ def main():
     app.add_handler(CommandHandler("generate", generate))
 
     app.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
+        MessageHandler(filters.ALL & ~filters.COMMAND, handle_message)
     )
+    #app.add_handler(MessageHandler(filters.ALL, debug))
 
     app.run_polling()
 
