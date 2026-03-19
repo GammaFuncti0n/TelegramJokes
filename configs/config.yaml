@@ -1,0 +1,20 @@
+paths:
+  model_path: "./artifacts/checkpoints/models/"
+  tokenizer_path: "./artifacts/checkpoints/tokenizers/"
+  log: "./artifacts/logs"
+
+env:
+  device: 'cpu'
+
+token_path: "configs/token.yaml"
+
+model:
+  model_name: "LSTM_v01.pt"
+  tokenizer_name: "tokenizer_LSTM_v01.json"
+  vocab_size: 5000
+  special_tokens: ["[PAD]", "[UNK]", "[BOS]", "[EOS]"]
+
+generating:
+  maxlen: 128
+  temperature: 0.5
+  probability_for_chat: 0.05
