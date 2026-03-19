@@ -8,12 +8,12 @@ First add file `tgtoken.py` with `TOKEN=<YOUR_TOKEN>`
 
 Build image:
 ```bash
-docker build -t tgjokes:host -f Dockerfile.dev .
+docker build -t tgjokes:dev -f Dockerfile.dev .
 ```
 
 Run container:
 ```bash
-docker run -d -it --name tgjoke_host_container --restart unless-stopped --network host -v $(pwd):/workspace tgjokes:host
+docker run -d -it --name tgjoke_host_container --restart unless-stopped --network host -v $(pwd):/workspace tgjokes:dev
 ```
 
 Here `--restart unless-stopped` automatically run container if it was stopped

@@ -1,9 +1,3 @@
-.DS_Store
-TelegramJokes/
 artifacts/
-data/
-notebooks/
 __pycache__/
-tgtoken.py
-test.py
-*.log
+token.yaml

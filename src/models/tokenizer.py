@@ -7,39 +7,9 @@ from tokenizers.trainers import BpeTrainer
 from tokenizers.pre_tokenizers import ByteLevel
 from tokenizers.decoders import ByteLevel as ByteLevelDecoder
 from tokenizers.processors import TemplateProcessing
-import torch
-import torch.nn as nn
 
 import logging
 logger = logging.getLogger(__name__)
-
-class LSTMModel(nn.Module):
-    def __init__(self, vocab_size, embedding_size, hidden_size, num_layers, dropout, **kwargs):
-        super(LSTMModel, self).__init__()
-        self.embedding_size = embedding_size
-        self.hidden_size = hidden_size
-        self.num_layers = num_layers
-        self.dropout = dropout
-        self.vocab_size = vocab_size
-
-        self.embeddings = nn.Embedding(
-            num_embeddings=self.vocab_size,
-            embedding_dim=self.embedding_size
-        )
-        self.encoder = nn.LSTM(
-            input_size=self.embedding_size,
-            hidden_size=self.hidden_size,
-            num_layers=self.num_layers,
-            batch_first=True,
-            dropout=self.dropout
-            )
-
-        self.head = nn.Linear(hidden_size, self.vocab_size)
-    def forward(self, x):
-        emb = self.embeddings(x)
-        out, (h, c) = self.encoder(emb)
-        out = self.head(out)
-        return out
 
 class JokesTokenizer():
     def __init__(self, vocab_size: int, special_tokens: List[str]):
@@ -75,6 +45,8 @@ class JokesTokenizer():
         if isinstance(X, str):
             return self._tokenizer.encode(X).ids
         else:
+            raise Exception("Input should be str")
+            # Need to be fix
             return self._tokenizer.encode_batch(X).ids
 
     def decode(self, X):
@@ -98,16 +70,3 @@ class JokesTokenizer():
         except Exception:
             logger.exception("Failed to load file: %s", path)
             raise
-
-def load_model(weights_path, device="cpu"):
-    model = LSTMModel(5000, 256, 256, 2, 0.3)
-    checkpoint = torch.load(weights_path, map_location=device, weights_only=False)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    model.to(device)
-    model.eval()
-    return model
-
-def load_tokenizer(tokenizer_path):
-    tokenizer = JokesTokenizer(5000, ["[PAD]", "[UNK]", "[BOS]", "[EOS]"])
-    tokenizer.load(tokenizer_path)
-    return tokenizer
