@@ -20,6 +20,7 @@ setup_loggers(config['paths']['log'])
 def main():
     app = ApplicationBuilder().token(TOKEN).request(HTTPXRequest()).build()
 
+    app.bot_data["config"] = config
     app.bot_data["generator"] = LSTMGenerator(config)
     app.bot_data["user_votes"] = init_db(config['paths']['log'])
 

@@ -15,5 +15,6 @@ model:
   special_tokens: ["[PAD]", "[UNK]", "[BOS]", "[EOS]"]
 
 generating:
+  maxlen: 128
   temperature: 0.5
   probability_for_chat: 0.05

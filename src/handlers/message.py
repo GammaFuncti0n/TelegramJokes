@@ -10,6 +10,7 @@ user_logger = logging.getLogger("user_requests")
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     generator = context.bot_data["generator"]
+    config = context.bot_data["config"]
 
     if update.message.text:
         user_text = update.message.text
@@ -17,8 +18,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_text = ""
     
     p = random.random()
-    if p < 0.05:
-        joke = "Напомнило анекдот: \n\n" + generator.generate(prompt="", temperature=0.5).strip()
+    if p < config['generating']['probability_for_chat']:
+        joke = "Напомнило анекдот: \n\n" + generator.generate(prompt="", maxlen=config['generating']['maxlen'], temperature=config['generating']['temperature']).strip()
     else:
         return None
 

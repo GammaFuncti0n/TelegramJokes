@@ -1,10 +1,10 @@
 # Abstract
 
-Проект для обучения авторегрессионной модели для генерации анекдотов. Модель будет обернута в контенйер и размещена на плате raspberry 5.
+Telegram bot for joking in chat. It contain /generate function for make joke from scratch or from prompt. Also during chating, bot able with some probability joke on some message.
 
-# Host branch
+# Quick start
 
-First add file `tgtoken.py` with `TOKEN=<YOUR_TOKEN>`
+First add file `configs/token.yaml` with `TOKEN: <YOUR_TOKEN>`
 
 Build image:
 ```bash
