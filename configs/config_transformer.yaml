@@ -8,26 +8,26 @@ env:
   device: cuda:2
 
 model:
-  type: lstm
-  name: LSTM_v02
+  type: transformer
+  name: Transformer_v02
   model_params:
     vocab_size: 5000
-    embedding_size: 512 
-    hidden_size: 512 
-    num_layers: 2
-    dropout: 0.3
+    hidden_size: 384
+    num_layers: 6
+    num_heads: 6
+    dropout: 0.15
     model_max_length: 128
 
   tokenizer_params:
     special_tokens: ["[PAD]", "[UNK]", "[BOS]", "[EOS]"]
 
 train_params:
-  num_epochs: 2
-  batch_size: 256
-  num_workers: 1
-  lr: 1e-3
-  weight_decay: 1e-4
+  num_epochs: 10
+  batch_size: 300
+  num_workers: 2
+  lr: 2e-4
+  weight_decay: 1e-2
   gamma: 0.9
-  scheduler_step: 5
+  scheduler_step: 2
   loss_logging_step: 500
   gradient_clip: 1.0

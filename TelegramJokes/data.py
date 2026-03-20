@@ -31,7 +31,7 @@ class JokesDataset(Dataset):
         return len(self.texts)
     
     def __getitem__(self, idx):
-        line = self.texts[idx]
+        line = self.texts[idx].strip()
         tokens = self.tokenizer.encode(line)
         return torch.tensor(tokens, dtype=torch.long)
 

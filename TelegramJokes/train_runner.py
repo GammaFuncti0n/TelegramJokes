@@ -1,7 +1,7 @@
 import os
 
 from TelegramJokes.data import load_data, JokesDataset, collate_fn
-from TelegramJokes.models import JokesTokenizer, LSTMModule
+from TelegramJokes.models import JokesTokenizer, LSTMModule, TransformerModule
 from torch.utils.data import DataLoader
 
 class TrainRunner():
@@ -43,8 +43,10 @@ class TrainRunner():
             num_workers=self.num_workers
             )
 
-        model = LSTMModule(self.config, tokenizer)
+        if self.config['model']['type']=='lstm':
+            model = LSTMModule(self.config, tokenizer)
+        elif self.config['model']['type']=='transformer':
+            model = TransformerModule(self.config, tokenizer)
+        else:
+            raise Exception(f"Unknown model type: {self.config['model']['type']}")
         model.fit(train_dataloader)
-
-        # log results
-        # save model

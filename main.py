@@ -7,7 +7,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 def main():
-    with open('configs/config.yaml', 'r') as f:
+    with open('configs/config_transformer.yaml', 'r') as f:
         config = yaml.safe_load(f)
     logger.info(config)
     check_paths(config)
