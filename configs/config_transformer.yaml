@@ -9,7 +9,7 @@ env:
 
 model:
   type: transformer
-  name: Transformer_v02
+  name: Transformer_v03
   model_params:
     vocab_size: 5000
     hidden_size: 384
@@ -22,12 +22,12 @@ model:
     special_tokens: ["[PAD]", "[UNK]", "[BOS]", "[EOS]"]
 
 train_params:
-  num_epochs: 10
-  batch_size: 300
+  num_epochs: 11
+  batch_size: 512
   num_workers: 2
-  lr: 2e-4
+  lr: 5e-4
   weight_decay: 1e-2
-  gamma: 0.9
+  gamma: 0.75
   scheduler_step: 2
   loss_logging_step: 500
   gradient_clip: 1.0
