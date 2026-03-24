@@ -3,7 +3,7 @@ from src.utils import check_paths, setup_loggers, init_db
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from telegram.request import HTTPXRequest
 from src.handlers import start, generate, feedback_callback, handle_message
-from src.generator import LSTMGenerator, TransformerGenerator
+from src.generator import LSTMGenerator, TransformerGenerator, RAGJoke
 
 # Main config
 with open("configs/transformer_config.yaml", 'r') as f:
@@ -22,6 +22,7 @@ def main():
 
     app.bot_data["config"] = config
     app.bot_data["generator"] = TransformerGenerator(config) #LSTMGenerator
+    app.bot_data['rag_joke'] = RAGJoke(config)
     app.bot_data["user_votes"] = init_db(config['paths']['log'])
 
     app.add_handler(CommandHandler("start", start))

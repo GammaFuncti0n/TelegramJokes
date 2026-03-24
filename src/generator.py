@@ -106,3 +106,14 @@ class TransformerGenerator():
         output_tokens = input_tokens.squeeze(0).cpu()
         output_text = self.tokenizer.decode(list(output_tokens))
         return output_text
+    
+class RAGJoke():
+    '''
+    Class for retrieve jokes from joke base
+    '''
+    def __init__(self, config):
+        self.config = config
+    
+    @torch.no_grad()
+    def generate(self, prompt):
+        return None
