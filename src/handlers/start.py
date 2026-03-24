@@ -11,9 +11,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     text = (
         "Привет! Я бот, который генерирует анекдоты.\n"
-        "Напиши \\generate и начало анекдота — и я его продолжу.\n"
-        "Или добавь меня в чат, я смогу случайно отвечать на сообщения\n"
-        "и создавать к ним анекдот."
+        "Напиши /generate и начало анекдота — и я его продолжу.\n"
+        "Или добавь меня в чат, я смогу случайно отвечать на сообщения анекдотами\n"
     )
     await update.message.reply_text(text)
     user_logger.info(

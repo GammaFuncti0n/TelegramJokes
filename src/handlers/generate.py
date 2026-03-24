@@ -15,9 +15,10 @@ async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prompt = " ".join(context.args)
     
     joke = generator.generate(prompt=prompt, maxlen=config['generating']['maxlen'], temperature=config['generating']['temperature'], ).strip()
+    joke = joke.replace('/n', '')
 
     joke_id = str(uuid.uuid4())
-    markup = create_feedback_buttons(joke_id)
+    markup = create_feedback_buttons(joke_id, '', '')
     await update.message.reply_text(joke, reply_markup=markup)
 
     user_logger.info(

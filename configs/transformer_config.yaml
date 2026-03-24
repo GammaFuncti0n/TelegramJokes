@@ -1,0 +1,20 @@
+paths:
+  model_path: "./artifacts/checkpoints/models/"
+  tokenizer_path: "./artifacts/checkpoints/tokenizers/"
+  log: "./artifacts/logs"
+
+env:
+  device: 'cpu'
+
+token_path: "configs/token.yaml"
+
+model:
+  model_name: "Transformer_v03.pt"
+  tokenizer_name: "tokenizer_Transformer_v03.json"
+  vocab_size: 5000
+  special_tokens: ["[PAD]", "[UNK]", "[BOS]", "[EOS]"]
+
+generating:
+  maxlen: 128
+  temperature: 0.35
+  probability_for_chat: 0.005

@@ -6,11 +6,11 @@ import logging
 
 user_logger = logging.getLogger("user_requests")
 
-def create_feedback_buttons(joke_id: str):
+def create_feedback_buttons(joke_id: str, likes: str, dislikes: str):
     keyboard = [
         [
-            InlineKeyboardButton("👍 Нравится", callback_data=f"like|{joke_id}"),
-            InlineKeyboardButton("👎 Не нравится", callback_data=f"dislike|{joke_id}"),
+            InlineKeyboardButton(f"👍 {likes}", callback_data=f"like|{joke_id}"),
+            InlineKeyboardButton(f"👎 {dislikes}", callback_data=f"dislike|{joke_id}"),
         ]
     ]
     return InlineKeyboardMarkup(keyboard)
@@ -41,5 +41,24 @@ async def feedback_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             }
         )
 
+        likes, dislikes = get_vote_counts(conn, joke_id)
+        new_markup = create_feedback_buttons(joke_id, str(likes), str(dislikes))
+        await query.edit_message_reply_markup(reply_markup=new_markup)
+
     except sqlite3.IntegrityError:
         pass
+
+
+def get_vote_counts(conn, joke_id: str):
+    cursor = conn.execute(
+        """
+        SELECT 
+            SUM(CASE WHEN action = 'like' THEN 1 ELSE 0 END) as likes,
+            SUM(CASE WHEN action = 'dislike' THEN 1 ELSE 0 END) as dislikes
+        FROM votes
+        WHERE joke_id = ?
+        """,
+        (joke_id,)
+    )
+    row = cursor.fetchone()
+    return row[0] or 0, row[1] or 0

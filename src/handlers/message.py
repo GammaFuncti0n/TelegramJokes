@@ -20,11 +20,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     p = random.random()
     if p < config['generating']['probability_for_chat']:
         joke = "Напомнило анекдот: \n\n" + generator.generate(prompt="", maxlen=config['generating']['maxlen'], temperature=config['generating']['temperature']).strip()
+    elif user_text.lower().startswith('олух') or user_text.lower().startswith('костян') or user_text.lower().startswith('костик') or user_text.lower().startswith('влад') or user_text.lower().startswith('макан'):
+        joke = generator.generate(prompt="", maxlen=config['generating']['maxlen'], temperature=config['generating']['temperature']).strip()
     else:
         return None
-
+    
+    joke = joke.replace('/n', '')
     joke_id = str(uuid.uuid4())
-    markup = create_feedback_buttons(joke_id)
+    markup = create_feedback_buttons(joke_id, '', '')
     await update.message.reply_text(joke, reply_markup=markup)
     
     user_logger.info(
