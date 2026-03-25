@@ -6,6 +6,7 @@ import random
 import logging
 
 user_logger = logging.getLogger("user_requests")
+system_logger = logging.getLogger("system")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
@@ -26,12 +27,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         #joke = generator.generate(prompt="", maxlen=config['generating']['maxlen'], temperature=config['generating']['temperature']).strip()
         joke = rag_joke.generate(prompt=user_text).strip()
     else:
+        system_logger.info(f"{user_text=}: {p=}")
         return None
     
     joke = joke.replace('/n', '')
     joke_id = str(uuid.uuid4())
     #markup = create_feedback_buttons(joke_id, '', '')
-    #await update.message.reply_text(joke, reply_markup=markup)
+    system_logger.info(joke)
+    await update.message.reply_text(joke, reply_markup=None)
     
     user_logger.info(
         f"prompt: {user_text} | response: {joke} | joke_id: {joke_id}",

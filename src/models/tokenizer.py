@@ -9,7 +9,7 @@ from tokenizers.decoders import ByteLevel as ByteLevelDecoder
 from tokenizers.processors import TemplateProcessing
 
 import logging
-logger = logging.getLogger(__name__)
+system_logger = logging.getLogger('system')
 
 class JokesTokenizer():
     def __init__(self, vocab_size: int, special_tokens: List[str]):
@@ -38,7 +38,7 @@ class JokesTokenizer():
             ]
         )
         self._is_fitted = True
-        logger.info("Tokenizer fitted")
+        system_logger.info("Tokenizer fitted")
 
     def encode(self, X):
         assert self._is_fitted
@@ -57,16 +57,16 @@ class JokesTokenizer():
         try:
             assert self._is_fitted
             self._tokenizer.save(path)
-            logger.info("Tokenizer saved in: %s", path)
+            system_logger.info("Tokenizer saved in: %s", path)
         except Exception:
-            logger.exception("Failed to save tokenize: %s", path)
+            system_logger.exception("Failed to save tokenize: %s", path)
             raise
 
     def load(self, path):
         try:
             self._tokenizer = Tokenizer.from_file(path)
             self._is_fitted = True
-            logger.info("Tokenizer loaded from: %s", path)
+            system_logger.info("Tokenizer loaded from: %s", path)
         except Exception:
-            logger.exception("Failed to load file: %s", path)
+            system_logger.exception("Failed to load file: %s", path)
             raise

@@ -1,4 +1,5 @@
 paths:
+  data_path: './data/'
   model_path: "./artifacts/checkpoints/models/"
   tokenizer_path: "./artifacts/checkpoints/tokenizers/"
   log: "./artifacts/logs"
@@ -9,12 +10,18 @@ env:
 token_path: "configs/token.yaml"
 
 model:
-  model_name: "Transformer_v03.pt"
-  tokenizer_name: "tokenizer_Transformer_v03.json"
+  model_name: "Transformer_v04.pt"
+  tokenizer_name: "tokenizer_Transformer_v04.json"
   vocab_size: 5000
   special_tokens: ["[PAD]", "[UNK]", "[BOS]", "[EOS]"]
+
+rag_model:
+  model_name: "intfloat/e5-small"
+  embeddings_path: "./artifacts/models/embeddings_v4.pth"
+  data_name: "jokes_clean_v4.txt"
+  chunk_size: 100000
 
 generating:
   maxlen: 128
   temperature: 0.35
-  probability_for_chat: 0.005
+  probability_for_chat: 0.025

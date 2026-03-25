@@ -1,7 +1,13 @@
 import os
 import torch
+import numpy as np
+from sentence_transformers import SentenceTransformer
 from .models import LSTMModel, JokesTokenizer, TransformerModel
+torch.set_num_threads(1)
+torch.set_num_interop_threads(1)
 import logging
+
+system_logger = logging.getLogger("system")
 
 class LSTMGenerator():
     '''
@@ -28,6 +34,7 @@ class LSTMGenerator():
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.to(self.device)
         self.model.eval()
+        system_logger.info(f"Model {self.model_path} loaded")
 
     def __load_tokenizer(self):
         self.tokenizer = JokesTokenizer(self.vocab_size, self.special_tokens)
@@ -83,6 +90,7 @@ class TransformerGenerator():
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.to(self.device)
         self.model.eval()
+        system_logger.info(f"Model {self.model_path} loaded")
 
     def __load_tokenizer(self):
         self.tokenizer = JokesTokenizer(self.vocab_size, self.special_tokens)
@@ -113,7 +121,42 @@ class RAGJoke():
     '''
     def __init__(self, config):
         self.config = config
+
+        self.data_path = os.path.join(self.config['paths']['data_path'], self.config['rag_model']['data_name'])
+        self.model_name = self.config['rag_model']['model_name']
+        self.chunk_size = self.config['rag_model']['chunk_size']
+
+        self.embeddings_path = self.config['rag_model']['embeddings_path']
+
+        self.__load_data()
+        assert self.chunk_size <= self.database_len
+        self.__load_model()
     
-    @torch.no_grad()
+    def __load_data(self):
+        self.data_base = []
+        with open(self.data_path, 'r') as f:
+            for line in f:
+                self.data_base.append(str(line))
+        self.data_base = np.array(self.data_base)
+        self.database_len = len(self.data_base)
+        system_logger.info(f"Data {self.data_path} loaded and has length = {self.database_len}")
+
+    def __load_model(self):
+        self.model = SentenceTransformer(self.model_name)#, local_files_only=True)  
+        system_logger.info(f"Model {self.model_name} loaded") 
+
+        self.joke_embeddings = torch.load(self.embeddings_path)
+        system_logger.info(f"Embeddings {self.embeddings_path} loaded")
+        
     def generate(self, prompt):
-        return None
+        chunk_indeces = np.random.choice(self.database_len, size=self.chunk_size, replace=False)
+        documents = self.data_base[chunk_indeces]
+        document_embeddings = self.joke_embeddings[chunk_indeces].to(torch.float32)
+        #document_embeddings = self.model.encode(documents, prompt_name="query")
+        query_embeddings = self.model.encode(prompt, prompt_name="query")
+
+        scores = self.model.similarity(query_embeddings, document_embeddings)
+        index = scores.argmax(-1).squeeze(0)
+        system_logger.info(f"{document_embeddings.shape=}, {scores.max()=}, {scores.min()=}, {index=}")
+        output_text = documents[index]
+        return output_text
